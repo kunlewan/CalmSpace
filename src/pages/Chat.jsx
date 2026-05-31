@@ -491,7 +491,7 @@ export default function Chat() {
     if (socketRef.current) return;
     const token = getAccessToken();
     const socket = io(
-      `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/chat`,
+     'https://calmspacebackend.onrender.com/chat',
       {
         withCredentials: true,
         autoConnect: true,
