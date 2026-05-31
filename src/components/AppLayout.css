@@ -1,0 +1,48 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-bg);
+  transition: background var(--transition-base);
+}
+
+/* Subtle grid texture for dark mode depth */
+[data-theme="dark"] .app-layout {
+  background-image: radial-gradient(circle at 20% 20%, rgba(20,184,166,0.03) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(99,102,241,0.03) 0%, transparent 50%);
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  transition: margin-left var(--transition-base);
+  scrollbar-width: thin;
+}
+
+/* Wider, less boxed inner container - uses ~80% effectively */
+.app-main-inner {
+  padding: 32px 44px;
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  animation: fadeIn 350ms ease both;
+}
+
+@media (max-width: 1400px) {
+  .app-main-inner { padding: 28px 36px; }
+}
+
+@media (max-width: 1200px) {
+  .app-main-inner { padding: 24px 28px; }
+}
+
+@media (max-width: 1024px) {
+  .app-main-inner { padding: 20px 20px; }
+}
+
+@media (max-width: 768px) {
+  .app-layout { flex-direction: column; }
+  .app-main-inner { padding: 16px 16px; }
+}
