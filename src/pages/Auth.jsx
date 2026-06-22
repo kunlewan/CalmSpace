@@ -81,44 +81,46 @@ export function LoginPage() {
 
   const handleModeChange = (m) => { if (m === "signup") navigate("/auth/signup"); };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (submitting) return;
-    if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (submitting) return;
+  if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
 
-    setSubmitting(true);
-    setLoading(true);
-    setError("");
+  setSubmitting(true);
+  setLoading(true);
+  setError("");
 
-    try {
-      const email = form.email.trim().toLowerCase();
-      const response = await api.post("/auth/login", { email, password: form.password });
-      const { accessToken, user: userData } = response.data;
+  try {
+    const email = form.email.trim().toLowerCase();
+    const response = await api.post("/auth/login", { email, password: form.password });
+    const { accessToken, user: userData } = response.data;
 
-      // ── IMPORTANT: set token FIRST, then login() so Chat.jsx can read it ──
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
+    if (accessToken) setAccessToken(accessToken);
+    login(userData, accessToken);
 
-      // Pass token into login() so AppContext also holds it
-      login(userData, accessToken);
+    navigate(onboardingStep > 0 && onboardingStep < 6 ? "/onboarding" : "/dashboard");
 
-
-      navigate(onboardingStep > 0 && onboardingStep < 6 ? "/onboarding" : "/dashboard");
-    } catch (err) {
-      console.error(err);
-      if (err.message?.includes("429") || err.response?.status === 429) {
-        setError("Too many login attempts. Please wait a few minutes before trying again.");
-      } else if (err.message?.includes("Network Error") || err.code === "ERR_NETWORK") {
-        setError("Cannot connect to server. Please check your connection or try again later.");
-      } else {
-        setError(err.message || "Invalid email or password");
-      }
-    } finally {
-      setLoading(false);
-      setSubmitting(false);
+  } catch (err) {
+    // ── Email not verified ──────────────────────────────────────
+    if (err.response?.status === 403 && err.response?.data?.needsVerification) {
+      navigate("/auth/verify-email", { 
+        state: { email: form.email.trim().toLowerCase() } 
+      });
+      return;
     }
-  };
+    // ── Other errors ────────────────────────────────────────────
+    if (err.response?.status === 429) {
+      setError("Too many login attempts. Please wait a few minutes before trying again.");
+    } else if (err.message?.includes("Network Error") || err.code === "ERR_NETWORK") {
+      setError("Cannot connect to server. Please check your connection or try again later.");
+    } else {
+      setError(err.response?.data?.message || err.message || "Invalid email or password");
+    }
+  } finally {
+    setLoading(false);
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="auth-split">
