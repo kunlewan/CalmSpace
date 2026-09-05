@@ -358,3 +358,190 @@
   flex-direction: column;
   gap: 10px;
 }
+
+/* ── Assessment Tab Row ─────────────────────────────────────────────────── */
+.assess-tab-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  padding-bottom: 0;
+}
+.assess-tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.assess-tab-btn:hover { color: var(--color-text, #111); }
+.assess-tab-btn--active {
+  color: var(--teal-500, #14b8a6);
+  border-bottom-color: var(--teal-500, #14b8a6);
+}
+
+/* ── SPIN Result Card ───────────────────────────────────────────────────── */
+.spin-result-card { padding: 0; overflow: hidden; }
+
+.spin-result-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 24px;
+  border-bottom: 1.5px solid;
+}
+.spin-score-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.spin-score-num { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+.spin-score-max { font-size: 0.7rem; color: var(--color-text-muted, #6b7280); }
+.spin-severity-label { font-size: 1.25rem; font-weight: 700; margin: 0 0 2px; }
+.spin-severity-sub { font-size: 0.8rem; color: var(--color-text-muted, #6b7280); margin: 0 0 4px; }
+.spin-anxiety-index { font-size: 0.85rem; color: var(--color-text-muted, #6b7280); margin: 0; }
+
+/* Referral flag */
+.spin-referral-flag {
+  margin: 16px 24px 0;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+/* Domain scores */
+.spin-domains {
+  margin: 16px 24px 0;
+  padding: 16px;
+}
+.spin-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--color-text, #111);
+}
+.spin-domain-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.spin-domain-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #6b7280);
+  width: 220px;
+  flex-shrink: 0;
+}
+.spin-domain-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--color-surface-2, #f3f4f6);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.spin-domain-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+.spin-domain-pct {
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* CBT Exercises */
+.spin-exercises {
+  margin: 16px 24px 0;
+}
+.spin-exercises-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #6b7280);
+  margin: -8px 0 12px;
+}
+.spin-exercise-card {
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.spin-ex-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  background: var(--color-surface-1, #fff);
+}
+.spin-ex-header:hover { background: var(--color-surface-2, #f9fafb); }
+.spin-ex-title { font-size: 0.9rem; font-weight: 600; color: var(--color-text, #111); }
+.spin-ex-meta { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.spin-ex-domain {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  background: var(--teal-500, #14b8a6);
+  color: #fff;
+  border-radius: 99px;
+}
+.spin-ex-dur, .spin-ex-diff {
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #6b7280);
+  padding: 2px 8px;
+  background: var(--color-surface-2, #f3f4f6);
+  border-radius: 99px;
+}
+.spin-ex-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6b7280);
+  padding: 4px;
+  flex-shrink: 0;
+}
+.spin-ex-body {
+  padding: 0 16px 14px;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+.spin-ex-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #6b7280);
+  margin: 12px 0 8px;
+}
+.spin-ex-steps {
+  margin: 0 0 8px 16px;
+  padding: 0;
+  font-size: 0.83rem;
+  color: var(--color-text, #374151);
+}
+.spin-ex-steps li { margin-bottom: 4px; }
+.spin-ex-rationale {
+  font-size: 0.8rem;
+  color: var(--teal-600, #0d9488);
+  font-style: italic;
+  margin: 4px 0 0;
+}
+
+/* Actions */
+.spin-result-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  justify-content: flex-end;
+}

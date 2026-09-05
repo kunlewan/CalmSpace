@@ -44,6 +44,7 @@ function MovieCard({ movie, index }) {
         <div className="movie-title">{movie.title}</div>
         <div className="movie-meta-row">
           <span className="movie-year">{movie.year}</span>
+          {movie.genre && <span className="movie-genre-tag">{movie.genre}</span>}
           <span className="movie-stars">
             <MdStar size={12} style={{ color: '#BA7517', flexShrink: 0 }} />
             {movie.rating}
@@ -98,10 +99,19 @@ function GoalPlanCard({ plan }) {
 
       {expanded && (
         <div className="goal-plan-body animate-fade-in">
+
+          {/* Why this goal matters now */}
+          {plan.whyNow && (
+            <div className="gps-why-now">
+              <MdAutoAwesome size={13} style={{ color: '#fbbf24', flexShrink: 0 }} />
+              <span>{plan.whyNow}</span>
+            </div>
+          )}
+
           <div className="goal-plan-section">
             <h5 className="gps-label">⚡ Quick Wins (Do Today)</h5>
             <ul className="gps-list">
-              {plan.quickWins.map((w, i) => (
+              {(plan.quickWins || []).map((w, i) => (
                 <li key={i} className="gps-item">
                   <MdCheckCircle size={14} style={{ color: '#10b981', flexShrink: 0 }} />
                   <span>{w}</span>
@@ -112,7 +122,7 @@ function GoalPlanCard({ plan }) {
           <div className="goal-plan-section">
             <h5 className="gps-label">📅 Weekly Goals</h5>
             <ul className="gps-list">
-              {plan.weeklyGoals.map((g, i) => (
+              {(plan.weeklyGoals || []).map((g, i) => (
                 <li key={i} className="gps-item">
                   <MdArrowForward size={14} style={{ color: '#6366f1', flexShrink: 0 }} />
                   <span>{g}</span>
@@ -123,7 +133,7 @@ function GoalPlanCard({ plan }) {
           <div className="goal-plan-section">
             <h5 className="gps-label">📚 Recommended Resources</h5>
             <ul className="gps-list">
-              {plan.resources.map((r, i) => (
+              {(plan.resources || []).map((r, i) => (
                 <li key={i} className="gps-item">
                   <MdStar size={14} style={{ color: '#f59e0b', flexShrink: 0 }} />
                   <span>{r}</span>
@@ -152,6 +162,7 @@ export default function Recommendations() {
   const [recs, setRecs]                     = useState([]);
   const [mediaRecs, setMediaRecs]           = useState({ movies: [], music: [] });
   const [goalPlans, setGoalPlans]           = useState([]);
+  const [spinExercises, setSpinExercises]   = useState([]);
   const [loading, setLoading]               = useState(true);
   const [narrative, setNarrative]           = useState('');
   const [insight, setInsight]               = useState('');
@@ -175,6 +186,7 @@ export default function Recommendations() {
         setMeta(d.meta || null);
         setMediaRecs(d.mediaRecommendations || { movies: [], music: [] });
         setGoalPlans(d.goalActionPlans || []);
+        setSpinExercises(d.spinExercises || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -206,6 +218,7 @@ export default function Recommendations() {
 
   const hasMedia = mediaRecs.movies.length > 0 || mediaRecs.music.length > 0;
   const hasGoals = goalPlans.length > 0;
+  const hasSpinExercises = spinExercises.length > 0;
 
   const displayedMovies = mediaFilter === 'music'  ? [] : mediaRecs.movies;
   const displayedMusic  = mediaFilter === 'movies' ? [] : mediaRecs.music;
@@ -255,6 +268,9 @@ export default function Recommendations() {
           <div className="reco-ai-stat"><strong>{mediaRecs.movies.length}</strong><span>Movies</span></div>
           <div className="reco-ai-stat"><strong>{mediaRecs.music.length}</strong><span>Albums</span></div>
           <div className="reco-ai-stat"><strong>{goalPlans.length}</strong><span>Goal Plans</span></div>
+          {spinExercises.length > 0 && (
+            <div className="reco-ai-stat"><strong>{spinExercises.length}</strong><span>CBT</span></div>
+          )}
         </div>
       </div>
 
@@ -293,6 +309,12 @@ export default function Recommendations() {
           <button className={`reco-tab ${activeTab === 'goals' ? 'reco-tab--active' : ''}`} onClick={() => setActiveTab('goals')}>
             <MdRocketLaunch size={15} /> Goal Action Plans
             <span className="reco-tab-count">{goalPlans.length}</span>
+          </button>
+        )}
+        {hasSpinExercises && (
+          <button className={`reco-tab ${activeTab === 'cbt' ? 'reco-tab--active' : ''}`} onClick={() => setActiveTab('cbt')}>
+            <MdPsychology size={15} /> CBT Exercises
+            <span className="reco-tab-count">{spinExercises.length}</span>
           </button>
         )}
       </div>
@@ -496,6 +518,82 @@ export default function Recommendations() {
               </div>
               <div className="goals-list">
                 {goalPlans.map((plan, i) => <GoalPlanCard key={i} plan={plan} />)}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── CBT EXERCISES TAB ──────────────────────────────────────── */}
+      {!loading && activeTab === 'cbt' && (
+        <div className="cbt-tab-content">
+          {!hasSpinExercises ? (
+            <div className="reco-empty">
+              <MdPsychology size={32} style={{ opacity: 0.3 }} />
+              <p>Complete the SPIN Assessment to unlock personalised CBT exercises.</p>
+              <button className="btn-primary" style={{ marginTop: 16 }} onClick={() => window.location.href = '/assessment'}>
+                Take SPIN Assessment →
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="cbt-tab-header">
+                <p className="cbt-tab-desc">
+                  These CBT exercises are tailored specifically to your social anxiety domain scores from the SPIN assessment.
+                </p>
+              </div>
+              <div className="cbt-exercises-list">
+                {spinExercises.map((ex, i) => {
+                  const [open, setOpen] = React.useState(false);
+                  const domainTargets = Array.isArray(ex.domain_targets) ? ex.domain_targets : [];
+                  const primaryDomain = domainTargets[0] || 'general';
+                  const domainColor = primaryDomain === 'cognitive' ? '#8b5cf6' : primaryDomain === 'behavioral' ? '#3b82f6' : '#ec4899';
+                  const duration = ex.duration_minutes ? `${ex.duration_minutes} min` : null;
+                  return (
+                    <div key={i} className="cbt-exercise-card card">
+                      <div className="cbt-ex-header" onClick={() => setOpen(o => !o)}>
+                        <div className="cbt-ex-icon-wrap" style={{ background: domainColor + '18', border: `1.5px solid ${domainColor}30` }}>
+                          <MdPsychology size={20} style={{ color: domainColor }} />
+                        </div>
+                        <div className="cbt-ex-meta">
+                          <h3 className="cbt-ex-title">{ex.title}</h3>
+                          <div className="cbt-ex-tags">
+                            {domainTargets.map((d, di) => (
+                              <span key={di} className="cbt-ex-domain" style={{ background: domainColor + '18', color: domainColor }}>{d}</span>
+                            ))}
+                            {duration && <span className="cbt-ex-dur">⏱ {duration}</span>}
+                            {ex.evidence_base && <span className="cbt-ex-diff" title={ex.evidence_base}>📚 Evidence-based</span>}
+                          </div>
+                        </div>
+                        <button className="reco-expand-btn" style={{ marginLeft: 'auto' }}>
+                          {open ? <MdExpandLess size={16} /> : <MdExpandMore size={16} />}
+                        </button>
+                      </div>
+                      <p className="cbt-ex-desc">{ex.description}</p>
+                      {open && (
+                        <div className="cbt-ex-body animate-fade-in">
+                          {ex.steps && ex.steps.length > 0 && (
+                            <div className="reco-steps">
+                              <h4 className="reco-steps-heading">Step-by-step guide</h4>
+                              {ex.steps.map((step, si) => (
+                                <div key={si} className="reco-step">
+                                  <span className="reco-step-num">{si + 1}</span>
+                                  <span className="reco-step-text">{step}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {ex.evidence_base && (
+                            <div className="reco-why">
+                              <MdStar size={13} style={{ color: '#fbbf24', flexShrink: 0 }} />
+                              <span>{ex.evidence_base}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </>
           )}

@@ -76,7 +76,7 @@ export function LoginPage() {
   const [error, setError] = useState("");
 
   if (user) {
-    return <Navigate to={onboardingStep > 0 && onboardingStep < 6 ? "/onboarding" : "/dashboard"} replace />;
+    return <Navigate to={user.onboardingCompleted ? "/dashboard" : "/onboarding"} replace />;
   }
 
   const handleModeChange = (m) => { if (m === "signup") navigate("/auth/signup"); };
@@ -98,7 +98,13 @@ export function LoginPage() {
     if (accessToken) setAccessToken(accessToken);
     login(userData, accessToken);
 
-    navigate(onboardingStep > 0 && onboardingStep < 6 ? "/onboarding" : "/dashboard");
+    // Use the API response directly — onboardingStep state update is async so
+    // reading it here would give the stale value (0). Use userData instead.
+    if (userData.onboardingCompleted) {
+      navigate("/dashboard", { replace: true });
+    } else {
+      navigate("/onboarding", { replace: true });
+    }
 
   } catch (err) {
     // ── Email not verified ──────────────────────────────────────

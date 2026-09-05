@@ -39,6 +39,8 @@ export default function App() {
 function OnboardingRoute() {
   const { user, onboardingStep } = useApp();
   if (!user) return <Navigate to="/auth/login" replace />;
+  // If onboarding is already complete, never show it again
+  if (user.onboardingCompleted) return <Navigate to="/dashboard" replace />;
   if (onboardingStep >= 6) return <Navigate to="/dashboard" replace />;
   return <Onboarding />;
 }
@@ -46,6 +48,9 @@ function OnboardingRoute() {
 function ProtectedLayout() {
   const { user, onboardingStep } = useApp();
   if (!user) return <Navigate to="/auth/login" replace />;
-  if (onboardingStep > 0 && onboardingStep < 6) return <Navigate to="/onboarding" replace />;
+  // Only block access if onboarding is explicitly in-progress (not completed)
+  if (!user.onboardingCompleted && onboardingStep > 0 && onboardingStep < 6) {
+    return <Navigate to="/onboarding" replace />;
+  }
   return <AppLayout />;
 }

@@ -1,7 +1,7 @@
 // src/api.js
 import axios from 'axios';
 
-const BASE_URL = 'https://calmspacebackend.onrender.com/api';
+const BASE_URL = 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -68,5 +68,36 @@ api.interceptors.response.use(
     return Promise.reject(new Error(message));
   }
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPIN / Social Anxiety Model helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch the 17 SPIN question items from the backend
+ * (which proxies the Python model's /items endpoint).
+ * Falls back gracefully when the model is offline.
+ */
+export const fetchSpinItems = () => api.get('/assessments/spin/items');
+
+/**
+ * Submit 17 SPIN answers (0-4 each).
+ * Returns { score, severity, scoring, recommendation } when model is online,
+ * or { score, severity } when model is offline.
+ */
+export const submitSpin = (answers) =>
+  api.post('/assessments/spin', { answers });
+
+/**
+ * Get the latest SPIN assessment for the current user.
+ */
+export const getLatestSpin = () => api.get('/assessments/spin/latest');
+
+/**
+ * Check whether the Python model is reachable.
+ * Returns { online: true } or { online: false }.
+ */
+export const checkModelHealth = () =>
+  api.get('/assessments/model/health').then((r) => r.data).catch(() => ({ online: false }));
 
 export default api;

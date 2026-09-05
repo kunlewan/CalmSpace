@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 import { getAccessToken } from './api';   // ← Import this
 
-const API_BASE_URL = 'https://calmspacebackend.onrender.com';
+const API_BASE_URL = 'http://localhost:5000'; // Adjust this to your backend URL
 
 const socket = io(`${API_BASE_URL}/chat`, {
   auth: {

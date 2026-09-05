@@ -41,7 +41,14 @@ export default function Onboarding() {
   const [submittingAssessment, setSubmittingAssessment] = useState(false);
   const [assessmentError, setAssessmentError] = useState('');
 
-  const [profileData, setProfileData] = useState({ username: user?.username || '', bio: '', theme: 'auto' });
+  const [spinModelResult, setSpinModelResult] = useState(null);
+  const [spinShowResult, setSpinShowResult]   = useState(false);
+
+  const [profileData, setProfileData] = useState({
+    username: user?.username || user?.name || '',
+    bio: user?.bio || '',
+    theme: user?.theme || 'auto',
+  });
 
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [selectedGoals, setSelectedGoals]         = useState([]);
@@ -147,8 +154,14 @@ export default function Onboarding() {
       setSubmittingAssessment(true);
       setAssessmentError('');
       try {
-        await api.post('/assessments/spin', { answers: spinAnswers.map(Number) });
-        goToStep(4);
+        const res = await api.post('/assessments/spin', { answers: spinAnswers.map(Number) });
+        // Capture model result if available
+        if (res.data.modelAnalysis) {
+          setSpinModelResult(res.data.modelAnalysis);
+          setSpinShowResult(true); // show brief result before moving on
+        } else {
+          goToStep(4);
+        }
       } catch (err) {
         setAssessmentError(err.response?.data?.message || 'Failed to submit assessment.');
       } finally {
@@ -312,58 +325,116 @@ export default function Onboarding() {
           {/* Step 3: SPIN Assessment */}
           {currentStep === 3 && (
             <div className="ob-step-panel">
-              <div className="ob-assess-header">
-                <div>
+
+              {/* ── Mini result screen shown after submission if model returned data ── */}
+              {spinShowResult && spinModelResult ? (
+                <div className="ob-spin-result animate-fade-in">
                   <div className="ob-step-icon-big">
                     <MdPsychology size={40} style={{ color: 'var(--teal-500)' }} />
                   </div>
-                  <h2 className="ob-step-title">Social Phobia Inventory (SPIN)</h2>
-                  <p className="ob-step-subtitle">Answer based on how you've felt in the past week.</p>
-                </div>
-                <div className="ob-assess-progress-wrap">
-                  <div className="ob-assess-progress-text">Question {spinStep + 1} of {SPIN_QUESTIONS.length}</div>
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${((spinStep + 1) / SPIN_QUESTIONS.length) * 100}%` }} />
+                  <h2 className="ob-step-title">Assessment Complete 🎉</h2>
+                  <p className="ob-step-subtitle">
+                    Here's a quick snapshot of your social anxiety profile. Full details are on the Assessment page.
+                  </p>
+
+                  {/* Score summary */}
+                  <div className="ob-spin-snapshot">
+                    <div className="ob-snap-item">
+                      <span className="ob-snap-val">{spinModelResult.scoring?.overall?.raw_total ?? '—'}<span className="ob-snap-max">/68</span></span>
+                      <span className="ob-snap-label">Total Score</span>
+                    </div>
+                    <div className="ob-snap-item">
+                      <span className="ob-snap-val" style={{ fontSize: '1.1rem' }}>
+                        {spinModelResult.scoring?.overall?.severity?.replace(/_/g, ' ') ?? '—'}
+                      </span>
+                      <span className="ob-snap-label">Severity</span>
+                    </div>
+                    <div className="ob-snap-item">
+                      <span className="ob-snap-val">{spinModelResult.scoring?.overall?.anxiety_index != null ? `${spinModelResult.scoring.overall.anxiety_index.toFixed(0)}%` : '—'}</span>
+                      <span className="ob-snap-label">Anxiety Index</span>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="ob-question-card">
-                <div className="ob-question-category">SOCIAL ANXIETY</div>
-                <h3 className="ob-question-text">{SPIN_QUESTIONS[spinStep].text}</h3>
-                <div className="ob-options">
-                  {SPIN_QUESTIONS[spinStep].options.map((option, i) => (
-                    <button
-                      key={i}
-                      className={`ob-option ${spinAnswers[spinStep] === i ? 'ob-option--selected' : ''}`}
-                      onClick={() => handleSpinAnswer(spinStep, i)}
-                    >
-                      <span className="ob-option-radio" />
-                      <span>{option}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                  {/* CBT exercise count */}
+                  {spinModelResult.recommendation?.exercises?.length > 0 && (
+                    <div className="ob-spin-exercises-note">
+                      <MdTaskAlt size={16} style={{ color: 'var(--teal-500)', flexShrink: 0 }} />
+                      <span>
+                        <strong>{spinModelResult.recommendation.exercises.length} personalised CBT exercises</strong> have been unlocked for you — available on the Assessment &amp; Recommendations pages.
+                      </span>
+                    </div>
+                  )}
 
-              {assessmentError && <p className="ob-error text-center">{assessmentError}</p>}
+                  {/* Referral notice */}
+                  {spinModelResult.recommendation?.clinical_summary?.requires_professional_referral && (
+                    <div className="ob-spin-referral">
+                      ⚠️ Based on your score, connecting with a mental health professional could be very helpful. You'll find more guidance in your recommendations.
+                    </div>
+                  )}
 
-              <div className="ob-assess-nav">
-                {spinStep > 0 && (
-                  <button className="btn-ghost" onClick={() => setSpinStep(s => s - 1)}>
-                    <MdArrowBack size={16} /> Back
+                  <button className="btn-primary ob-next-btn" onClick={() => goToStep(4)}>
+                    Continue to Profile Setup <MdArrowForward size={16} />
                   </button>
-                )}
-                <button
-                  className="btn-primary"
-                  onClick={handleSpinNext}
-                  disabled={submittingAssessment || spinAnswers[spinStep] == null}
-                >
-                  {spinStep < SPIN_QUESTIONS.length - 1
-                    ? <><span>Next Question</span> <MdArrowForward size={16} /></>
-                    : <><MdTaskAlt size={16} /> Complete Assessment</>
-                  }
-                </button>
-              </div>
+                </div>
+              ) : (
+                <>
+                  {/* ── Quiz ── */}
+                  <div className="ob-assess-header">
+                    <div>
+                      <div className="ob-step-icon-big">
+                        <MdPsychology size={40} style={{ color: 'var(--teal-500)' }} />
+                      </div>
+                      <h2 className="ob-step-title">Social Phobia Inventory (SPIN)</h2>
+                      <p className="ob-step-subtitle">Answer based on how you've felt in the past week.</p>
+                    </div>
+                    <div className="ob-assess-progress-wrap">
+                      <div className="ob-assess-progress-text">Question {spinStep + 1} of {SPIN_QUESTIONS.length}</div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${((spinStep + 1) / SPIN_QUESTIONS.length) * 100}%` }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="ob-question-card">
+                    <div className="ob-question-category">SOCIAL ANXIETY</div>
+                    <h3 className="ob-question-text">{SPIN_QUESTIONS[spinStep].text}</h3>
+                    <div className="ob-options">
+                      {SPIN_QUESTIONS[spinStep].options.map((option, i) => (
+                        <button
+                          key={i}
+                          className={`ob-option ${spinAnswers[spinStep] === i ? 'ob-option--selected' : ''}`}
+                          onClick={() => handleSpinAnswer(spinStep, i)}
+                        >
+                          <span className="ob-option-radio" />
+                          <span>{option}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {assessmentError && <p className="ob-error text-center">{assessmentError}</p>}
+
+                  <div className="ob-assess-nav">
+                    {spinStep > 0 && (
+                      <button className="btn-ghost" onClick={() => setSpinStep(s => s - 1)}>
+                        <MdArrowBack size={16} /> Back
+                      </button>
+                    )}
+                    <button
+                      className="btn-primary"
+                      onClick={handleSpinNext}
+                      disabled={submittingAssessment || spinAnswers[spinStep] == null}
+                    >
+                      {submittingAssessment
+                        ? <span className="loading-spinner" />
+                        : spinStep < SPIN_QUESTIONS.length - 1
+                          ? <><span>Next Question</span> <MdArrowForward size={16} /></>
+                          : <><MdTaskAlt size={16} /> Complete Assessment</>
+                      }
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
